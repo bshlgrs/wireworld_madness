@@ -41,4 +41,4 @@ Active heads in the world: 36 Elapsed time: 0.290 sec after 1000 transitions on 
 ## trivial Python
 
 $ python3 python_cuda/wireworld.py
-time taken: 8.864523s on Langton 11x11 for 1000 transitions
+time taken: more than a second per transition on Langton's Ant 11x11

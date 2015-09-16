@@ -74,14 +74,23 @@ class Wireworld:
     for coord in new_states:
       self.cells[coord] = new_states[coord]
 
+def test_time(world, generations):
+  world = Wireworld.from_bmp(world)
+
+
 # world = Wireworld.from_bmp("comp1100_haskell/Wireworlds/Cycle.bmp")
-world = Wireworld.from_bmp("comp1100_haskell/Wireworlds/Langton's_Ant_11x11.bmp")
+
 
 # print(world.height)
-startTime = time.time()
+  startTime = time.time()
 
-for x in range(10):
-  world.transition()
+  for x in range(generations):
+    world.transition()
   # print(world)
 
-print("time taken: %f" % (time.time() - startTime))
+  delta = time.time() - startTime
+
+  print("time taken: %f total, %f per transition" % (delta, delta / generations))
+
+
+test_time("comp1100_haskell/Wireworlds/Langton's_Ant_3x3.bmp", 100)
