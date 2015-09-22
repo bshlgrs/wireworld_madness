@@ -36,6 +36,14 @@ class Wireworld:
     self.height = max(y for (x,y) in cells.keys()) + 1
     self.width = max(x for (x,y) in cells.keys()) + 1
 
+    self.post_init()
+
+  def post_init(self):
+    pass
+
+  def number_of_heads(self):
+    return sum(1 for x in self.cells.values() if x == Cell.head)
+
   def __repr__(self):
     output = []
     for x in range(self.width):
@@ -52,10 +60,12 @@ class Wireworld:
       output.append("\n")    
     return "".join(output)
 
+  def number_of_cells(self):
+    return len(self.cells)
+
   def transition(self):
     def doesPositionContainHead(x, y):
       return self.cells.get((x, y)) == Cell.head
-
 
     new_states = {}
     for coord, cell in self.cells.items():
@@ -74,23 +84,35 @@ class Wireworld:
     for coord in new_states:
       self.cells[coord] = new_states[coord]
 
-def test_time(world, generations):
-  world = Wireworld.from_bmp(world)
+class FasterWireworld(Wireworld):
+  pass
 
-
-# world = Wireworld.from_bmp("comp1100_haskell/Wireworlds/Cycle.bmp")
-
-
-# print(world.height)
+def run_world(filename, generations, verbose):
+  world = Wireworld.from_bmp(filename)
+  print("this world has %d cells in it"%(world.number_of_cells()))
   startTime = time.time()
 
   for x in range(generations):
     world.transition()
-  # print(world)
+    print(world.number_of_heads())
 
-  delta = time.time() - startTime
+    if verbose:
+      print(world)
 
-  print("time taken: %f total, %f per transition" % (delta, delta / generations))
+  return (time.time() - startTime, world)
 
 
-test_time("comp1100_haskell/Wireworlds/Langton's_Ant_3x3.bmp", 100)
+def print_world(filename):
+  print(Wireworld.from_bmp(filename))
+
+def test_time(filename, generations):
+  delta, world = run_world(filename, generations, False)
+  
+  print("time taken: %f total, %f per transition, %f per transition per cell" % 
+    (delta, delta / generations, delta / generations / world.number_of_cells()))
+
+
+# test_time("comp1100_haskell/Wireworlds/Langton's_Ant_5x5.bmp", 10)
+# test_time("comp1100_haskell/Wireworlds/Cycle.bmp", 100)
+
+print_world()
