@@ -8,10 +8,10 @@ enum CellType { HEAD, TAIL, WIRE, EMPTY };
 
 char cellTypeChar(CellType cellType) {
     switch (cellType) {
-        case HEAD: return '#';
-        case TAIL: return '*';
-        case WIRE: return 'o';
-        case EMPTY: return '.';
+        case HEAD: return 'H';
+        case TAIL: return 'T';
+        case WIRE: return '.';
+        case EMPTY: return ' ';
     }
 }
 
@@ -55,8 +55,14 @@ class World {
             cout << "I AM NOT IMPLEMENTED" << endl;
         }
 
-        virtual void printWorld() {
-            cout << "I AM NOT IMPLEMENTED" << endl;
+        void printWorld() {
+            int x, y;
+            for (y = 0; y < height; y++) {
+                for (x = 0; x < width; x++) {
+                    cout << cellTypeChar(getCell(x, y));
+                }
+                cout << endl;
+            }
         }
 
         virtual CellType getCell(int x, int y) {
@@ -64,10 +70,14 @@ class World {
             return EMPTY;
         }
 
-        int height, width;
+        bool isHead(int x, int y) {
+            return getCell(x, y) == HEAD;
+        }
+
+        int height = 0, width = 0;
 };
 
-class ListWorld {
+class MapWorld : public World {
     public:
         std::map<Position, CellType> cells;
 
@@ -79,14 +89,72 @@ class ListWorld {
             return EMPTY;
         }
     }
+
+    void transition() {
+        std::map<Position, CellType> oldCells;
+        oldCells.insert(cells.begin(), cells.end());
+        MapWorld oldWorld = MapWorld(oldCells);
+
+        for (auto iter : cells) {
+            Position pos = iter.first;
+            CellType cellType = iter.second;
+
+            switch (cellType) {
+                case HEAD: cells[pos] = TAIL; break;
+                case TAIL: cells[pos] = WIRE; break;
+                case WIRE: {
+                    int count = 0;
+                    int x = pos.x;
+                    int y = pos.y;
+
+                    for (int dx : { -1, 0, 1}) {
+                        for (int dy : { -1, 0, 1}) {
+                            count += oldWorld.isHead(x + dx, y + dy);
+                        }
+                    }
+
+                    if (count == 1 || count == 2) {
+                        cells[pos] = HEAD;
+                    }
+                };
+                default: break;
+            }
+        }
+    }
+
+    MapWorld(std::map<Position, CellType> _cells): cells(_cells) {
+        for (auto iter : cells) {
+            Position pos = iter.first;
+            width = max(width, pos.x + 1);
+            height = max(height, pos.y + 1);
+        }
+    }
+};
+
+MapWorld readWorld() {
+    std::map<Position, CellType> cells;
+    int y = 0;
+    for (std::string line; std::getline(std::cin, line); y++) {
+        int x = 0;
+        for (auto symbol: line) {
+            switch (symbol) {
+                case 'H': cells[Position(x, y)] = HEAD; break;
+                case 'T': cells[Position(x, y)] = TAIL; break;
+                case '.': cells[Position(x, y)] = WIRE; break;
+                case ' ': break;
+                default: return MapWorld(cells);
+            }
+            x++;
+        }
+    }
+    return MapWorld(cells);
 };
 
 int main() {
-    cout << "Hello, World!" << endl;
+    MapWorld world = readWorld();
 
-    Position pos = Position(3, 4);
-    Cell cell = Cell(pos, HEAD);
-
-    cout << cell.toString() << endl;
+    world.printWorld();
+    world.transition();
+    world.printWorld();
     return 0;
 }
