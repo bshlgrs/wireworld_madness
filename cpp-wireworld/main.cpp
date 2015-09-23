@@ -2,6 +2,9 @@
 #include <string>
 #include <map>
 #include <fstream>
+#include <time.h>
+#include <thread>
+
 
 using namespace std;
 
@@ -78,6 +81,8 @@ public:
     int height = 0, width = 0, numberOfHeads = 0;
 
     void run(int transitions, bool verbose) {
+        clock_t t = clock();
+
         for (int x = 0; x < transitions; x++) {
             if (verbose)
                 printWorld();
@@ -89,9 +94,13 @@ public:
             printWorld();
             cout << endl;
         }
+
+        t = clock() - t;
+        cout << "that took " << ((float)t) / CLOCKS_PER_SEC / transitions << " seconds per transition." << endl;
     }
 };
 
+// before multithreading: that took 0.0610326 seconds per transition.
 
 class MapWorld : public World {
 public:
@@ -107,10 +116,8 @@ public:
         }
     }
 
-    void transition() {
-        numberOfHeads = 0;
-        std::map<Position, int> adjacentHeads;
-        adjacentHeads.clear();
+    void countAdjacentHeads(int thisThread) {
+        adjacentHeads[thisThread].clear();
 
         for (auto iter : cells) {
             Position pos = iter.first;
@@ -121,17 +128,36 @@ public:
                     int x = pos.x;
                     int y = pos.y;
 
-                    for (int dx : { -1, 0, 1}) {
-                        for (int dy : { -1, 0, 1}) {
-                            adjacentHeads[Position(x + dx, y + dy)] ++;
-//                            cout << x + dx << "," << y + dy << " " << adjacentHeads[Position(x + dx, y + dy)] << endl;
+                    if (x % parallelism == thisThread) {
+                        for (int dx : { -1, 0, 1}) {
+                            for (int dy : { -1, 0, 1}) {
+                                adjacentHeads[x % parallelism][Position(x + dx, y + dy)] ++;
+//                                cout << x + dx << "," << y + dy << " " << adjacentHeads[thisThread][Position(x + dx, y + dy)] << endl;
+                            }
                         }
                     }
-                    break;
                 }
 
                 default: break;
             };
+        }
+
+    }
+
+    static const int parallelism = 1;
+    std::map<Position, int> adjacentHeads[parallelism];
+
+    void transition() {
+        numberOfHeads = 0;
+
+        std::thread threads[parallelism];
+
+        for (int i = 0; i < parallelism; i++) {
+            threads[i] = std::thread( [this, i] { countAdjacentHeads(i); } );
+        }
+
+        for (int i = 0; i < parallelism; i++) {
+            threads[i].join();
         }
 
         for (auto iter : cells) {
@@ -140,7 +166,8 @@ public:
 
             switch (cellType) {
                 case WIRE: {
-                    if (adjacentHeads[pos] == 1 || adjacentHeads[pos] == 2) {
+                    int count = adjacentHeads[pos.x % parallelism][pos];
+                    if (count == 1 || count == 2) {
                         cells[pos] = HEAD;
                         numberOfHeads++;
                     }
@@ -198,9 +225,9 @@ MapWorld loadFromFile(string filepath) {
 };
 
 int main() {
-    MapWorld world = loadFromFile("/Users/bshlegeris/Dropbox/repos/wireworld_madness/wireworlds/langton11x11.txt");
+    MapWorld world = loadFromFile("/Users/bshlegeris/Dropbox/repos/wireworld_madness/wireworlds/trollface.txt");
 //    cout << world.height << endl;
 //    world.printWorld();
-    world.run(100, false);
+    world.run(20, false);
     return 0;
 }
