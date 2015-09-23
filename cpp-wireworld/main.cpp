@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <map>
+#include <fstream>
 
 using namespace std;
 
@@ -74,12 +75,23 @@ class World {
             return getCell(x, y) == HEAD;
         }
 
-        int height = 0, width = 0;
+        int height = 0, width = 0, numberOfHeads = 0;
+
+        void runVerbosely(int transitions) {
+            for (int x = 0; x < transitions; x++) {
+//                printWorld();
+                cout << "number of heads: " << numberOfHeads << endl;
+                transition();
+            }
+//            printWorld();
+            cout << endl;
+        }
 };
 
 class MapWorld : public World {
     public:
-        std::map<Position, CellType> cells;
+
+    std::map<Position, CellType> cells;
 
     CellType getCell(int x, int y) {
         const Position pos = Position(x, y);
@@ -91,6 +103,7 @@ class MapWorld : public World {
     }
 
     void transition() {
+        numberOfHeads = 0;
         std::map<Position, CellType> oldCells;
         oldCells.insert(cells.begin(), cells.end());
         MapWorld oldWorld = MapWorld(oldCells);
@@ -115,6 +128,7 @@ class MapWorld : public World {
 
                     if (count == 1 || count == 2) {
                         cells[pos] = HEAD;
+                        numberOfHeads++;
                     }
                 };
                 default: break;
@@ -123,18 +137,33 @@ class MapWorld : public World {
     }
 
     MapWorld(std::map<Position, CellType> _cells): cells(_cells) {
+        numberOfHeads = 0;
         for (auto iter : cells) {
             Position pos = iter.first;
             width = max(width, pos.x + 1);
             height = max(height, pos.y + 1);
+            if (iter.second == HEAD)
+                numberOfHeads++;
         }
     }
 };
 
-MapWorld readWorld() {
+MapWorld loadFromFile(string filepath) {
     std::map<Position, CellType> cells;
+
     int y = 0;
-    for (std::string line; std::getline(std::cin, line); y++) {
+    std::ifstream file(filepath);
+
+    if (file.good()) {
+        cout << "yeah it's good\n";
+    } else {
+        cout << "nope it's bad\n";
+    }
+
+    std::string line;
+    while (getline(file, line))
+    {
+        y++;
         int x = 0;
         for (auto symbol: line) {
             switch (symbol) {
@@ -142,7 +171,7 @@ MapWorld readWorld() {
                 case 'T': cells[Position(x, y)] = TAIL; break;
                 case '.': cells[Position(x, y)] = WIRE; break;
                 case ' ': break;
-                default: return MapWorld(cells);
+                default: cout << "SHIT, something's wrong" << endl; break;
             }
             x++;
         }
@@ -150,11 +179,14 @@ MapWorld readWorld() {
     return MapWorld(cells);
 };
 
-int main() {
-    MapWorld world = readWorld();
+//MapWorld readWorld() {
+//    return loadFromStream(cin);
+//}
 
-    world.printWorld();
-    world.transition();
-    world.printWorld();
+int main() {
+    MapWorld world = loadFromFile("/Users/bshlegeris/Dropbox/repos/wireworld_madness/wireworlds/langton5x5.txt");
+//    cout << world.height << endl;
+//    world.printWorld();
+    world.runVerbosely(1000);
     return 0;
 }
