@@ -54,7 +54,7 @@ class Wireworld:
           elif self.cells[(x,y)] == Cell.tail:
             output.append("T")
           elif self.cells[(x,y)] == Cell.metal:
-            output.append("o")
+            output.append(".")
         else:
           output.append(" ")
       output.append("\n")    
@@ -115,4 +115,4 @@ def test_time(filename, generations):
 # test_time("comp1100_haskell/Wireworlds/Langton's_Ant_5x5.bmp", 10)
 # test_time("comp1100_haskell/Wireworlds/Cycle.bmp", 100)
 
-print_world("wireworlds/Langton's_Ant_5x5.bmp")
+print_world("wireworlds/Langton's_Ant_11x11.bmp")

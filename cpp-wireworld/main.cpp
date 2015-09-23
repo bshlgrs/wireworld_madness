@@ -5,7 +5,7 @@
 
 using namespace std;
 
-enum CellType { HEAD, TAIL, WIRE, EMPTY };
+enum CellType { EMPTY, HEAD, TAIL, WIRE };
 
 char cellTypeChar(CellType cellType) {
     switch (cellType) {
@@ -17,10 +17,10 @@ char cellTypeChar(CellType cellType) {
 }
 
 class Position {
-    public:
-        Position(int x_, int y_);
-        const int x;
-        const int y;
+public:
+    Position(int x_, int y_);
+    const int x;
+    const int y;
 };
 
 Position::Position(int x_, int y_): x(x_), y(y_) {}
@@ -39,57 +39,58 @@ bool operator<(const Position& l, const Position& r )
 
 
 class Cell {
-    public:
-        Cell(Position pos_, CellType cellType_);
-        const Position pos;
-        const CellType cellType;
-        string toString() {
-            return "<Cell at " + to_string(pos.x) + "," + to_string(pos.y) + " of type " + cellTypeChar(cellType) + ">";
-        }
+public:
+    Cell(Position pos_, CellType cellType_);
+    const Position pos;
+    const CellType cellType;
+    string toString() {
+        return "<Cell at " + to_string(pos.x) + "," + to_string(pos.y) + " of type " + cellTypeChar(cellType) + ">";
+    }
 };
 
 Cell::Cell(Position pos_, CellType cellType_): pos(pos_), cellType(cellType_) {}
 
 class World {
-    public:
-        virtual void transition() {
-            cout << "I AM NOT IMPLEMENTED" << endl;
-        }
+public:
+    virtual void transition() {
+        cout << "I AM NOT IMPLEMENTED" << endl;
+    }
 
-        void printWorld() {
-            int x, y;
-            for (y = 0; y < height; y++) {
-                for (x = 0; x < width; x++) {
-                    cout << cellTypeChar(getCell(x, y));
-                }
-                cout << endl;
+    void printWorld() {
+        int x, y;
+        for (y = 0; y < height; y++) {
+            for (x = 0; x < width; x++) {
+                cout << cellTypeChar(getCell(x, y));
             }
-        }
-
-        virtual CellType getCell(int x, int y) {
-            cout << "I AM NOT IMPLEMENTED" << endl;
-            return EMPTY;
-        }
-
-        bool isHead(int x, int y) {
-            return getCell(x, y) == HEAD;
-        }
-
-        int height = 0, width = 0, numberOfHeads = 0;
-
-        void runVerbosely(int transitions) {
-            for (int x = 0; x < transitions; x++) {
-//                printWorld();
-                cout << "number of heads: " << numberOfHeads << endl;
-                transition();
-            }
-//            printWorld();
             cout << endl;
         }
+    }
+
+    virtual CellType getCell(int x, int y) {
+        cout << "I AM NOT IMPLEMENTED" << endl;
+        return EMPTY;
+    }
+
+    bool isHead(int x, int y) {
+        return getCell(x, y) == HEAD;
+    }
+
+    int height = 0, width = 0, numberOfHeads = 0;
+
+    void runVerbosely(int transitions) {
+        for (int x = 0; x < transitions; x++) {
+//                printWorld();
+            cout << "number of heads: " << numberOfHeads << endl;
+            transition();
+        }
+//            printWorld();
+        cout << endl;
+    }
 };
 
+
 class MapWorld : public World {
-    public:
+public:
 
     std::map<Position, CellType> cells;
 
@@ -105,6 +106,7 @@ class MapWorld : public World {
     void transition() {
         numberOfHeads = 0;
         std::map<Position, CellType> oldCells;
+        
         oldCells.insert(cells.begin(), cells.end());
         MapWorld oldWorld = MapWorld(oldCells);
 
@@ -179,12 +181,8 @@ MapWorld loadFromFile(string filepath) {
     return MapWorld(cells);
 };
 
-//MapWorld readWorld() {
-//    return loadFromStream(cin);
-//}
-
 int main() {
-    MapWorld world = loadFromFile("/Users/bshlegeris/Dropbox/repos/wireworld_madness/wireworlds/langton5x5.txt");
+    MapWorld world = loadFromFile("/Users/bshlegeris/Dropbox/repos/wireworld_madness/wireworlds/langton11x11.txt");
 //    cout << world.height << endl;
 //    world.printWorld();
     world.runVerbosely(1000);
