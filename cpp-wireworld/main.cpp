@@ -116,8 +116,8 @@ public:
         }
     }
 
-    void countAdjacentHeads(int thisThread) {
-        adjacentHeads[thisThread].clear();
+    void countAdjacentHeads() {
+        adjacentHeads.clear();
 
         for (auto iter : cells) {
             Position pos = iter.first;
@@ -128,14 +128,13 @@ public:
                     int x = pos.x;
                     int y = pos.y;
 
-                    if (x % parallelism == thisThread) {
-                        for (int dx : { -1, 0, 1}) {
-                            for (int dy : { -1, 0, 1}) {
-                                adjacentHeads[x % parallelism][Position(x + dx, y + dy)] ++;
+                    for (int dx : { -1, 0, 1}) {
+                        for (int dy : { -1, 0, 1}) {
+                            adjacentHeads[Position(x + dx, y + dy)] ++;
 //                                cout << x + dx << "," << y + dy << " " << adjacentHeads[thisThread][Position(x + dx, y + dy)] << endl;
-                            }
                         }
                     }
+
                 }
 
                 default: break;
@@ -144,21 +143,12 @@ public:
 
     }
 
-    static const int parallelism = 1;
-    std::map<Position, int> adjacentHeads[parallelism];
+    std::map<Position, int> adjacentHeads;
 
     void transition() {
         numberOfHeads = 0;
 
-        std::thread threads[parallelism];
-
-        for (int i = 0; i < parallelism; i++) {
-            threads[i] = std::thread( [this, i] { countAdjacentHeads(i); } );
-        }
-
-        for (int i = 0; i < parallelism; i++) {
-            threads[i].join();
-        }
+        countAdjacentHeads();
 
         for (auto iter : cells) {
             Position pos = iter.first;
@@ -166,7 +156,7 @@ public:
 
             switch (cellType) {
                 case WIRE: {
-                    int count = adjacentHeads[pos.x % parallelism][pos];
+                    int count = adjacentHeads[pos];
                     if (count == 1 || count == 2) {
                         cells[pos] = HEAD;
                         numberOfHeads++;
@@ -225,7 +215,7 @@ MapWorld loadFromFile(string filepath) {
 };
 
 int main() {
-    MapWorld world = loadFromFile("/Users/bshlegeris/Dropbox/repos/wireworld_madness/wireworlds/trollface.txt");
+    MapWorld world = loadFromFile("/Users/bshlegeris/Dropbox/repos/wireworld_madness/wireworlds/langton11x11.txt");
 //    cout << world.height << endl;
 //    world.printWorld();
     world.run(20, false);
