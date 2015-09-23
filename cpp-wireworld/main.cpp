@@ -77,14 +77,18 @@ public:
 
     int height = 0, width = 0, numberOfHeads = 0;
 
-    void runVerbosely(int transitions) {
+    void run(int transitions, bool verbose) {
         for (int x = 0; x < transitions; x++) {
-//                printWorld();
+            if (verbose)
+                printWorld();
+
             cout << "number of heads: " << numberOfHeads << endl;
             transition();
         }
-//            printWorld();
-        cout << endl;
+        if (verbose) {
+            printWorld();
+            cout << endl;
+        }
     }
 };
 
@@ -105,36 +109,48 @@ public:
 
     void transition() {
         numberOfHeads = 0;
-        std::map<Position, CellType> oldCells;
-        
-        oldCells.insert(cells.begin(), cells.end());
-        MapWorld oldWorld = MapWorld(oldCells);
+        std::map<Position, int> adjacentHeads;
+        adjacentHeads.clear();
 
         for (auto iter : cells) {
             Position pos = iter.first;
             CellType cellType = iter.second;
 
             switch (cellType) {
-                case HEAD: cells[pos] = TAIL; break;
-                case TAIL: cells[pos] = WIRE; break;
-                case WIRE: {
-                    int count = 0;
+                case HEAD: {
                     int x = pos.x;
                     int y = pos.y;
 
                     for (int dx : { -1, 0, 1}) {
                         for (int dy : { -1, 0, 1}) {
-                            count += oldWorld.isHead(x + dx, y + dy);
+                            adjacentHeads[Position(x + dx, y + dy)] ++;
+//                            cout << x + dx << "," << y + dy << " " << adjacentHeads[Position(x + dx, y + dy)] << endl;
                         }
                     }
+                    break;
+                }
 
-                    if (count == 1 || count == 2) {
+                default: break;
+            };
+        }
+
+        for (auto iter : cells) {
+            Position pos = iter.first;
+            CellType cellType = iter.second;
+
+            switch (cellType) {
+                case WIRE: {
+                    if (adjacentHeads[pos] == 1 || adjacentHeads[pos] == 2) {
                         cells[pos] = HEAD;
                         numberOfHeads++;
                     }
-                };
+
+                    break;
+                }
+                case TAIL: cells[pos] = WIRE; break;
+                case HEAD: cells[pos] = TAIL; break;
                 default: break;
-            }
+            };
         }
     }
 
@@ -185,6 +201,6 @@ int main() {
     MapWorld world = loadFromFile("/Users/bshlegeris/Dropbox/repos/wireworld_madness/wireworlds/langton11x11.txt");
 //    cout << world.height << endl;
 //    world.printWorld();
-    world.runVerbosely(1000);
+    world.run(100, false);
     return 0;
 }
