@@ -4,6 +4,7 @@
 #include <fstream>
 #include <time.h>
 #include <thread>
+#include <unordered_map>
 
 
 using namespace std;
@@ -28,6 +29,13 @@ public:
 
 Position::Position(int x_, int y_): x(x_), y(y_) {}
 
+template <>
+struct hash<Position>
+{
+    std::size_t operator()(const Position& p) const {
+        return std::hash<int>()(p.x) ^ (std::hash<int>()(p.y) << 1);
+    }
+};
 
 bool operator<(const Position& l, const Position& r )
 {
@@ -40,6 +48,9 @@ bool operator<(const Position& l, const Position& r )
     return false;
 }
 
+bool operator==(const Position& l, const Position& r) {
+    return l.x == r.x && l.y == r.y;
+}
 
 class Cell {
 public:
@@ -102,10 +113,13 @@ public:
 
 // before multithreading: that took 0.0610326 seconds per transition.
 
+
+
 class MapWorld : public World {
 public:
 
     std::map<Position, CellType> cells;
+    std::map<Position, int> adjacentHeads;
 
     CellType getCell(int x, int y) {
         const Position pos = Position(x, y);
@@ -142,8 +156,6 @@ public:
         }
 
     }
-
-    std::map<Position, int> adjacentHeads;
 
     void transition() {
         numberOfHeads = 0;
@@ -218,6 +230,6 @@ int main() {
     MapWorld world = loadFromFile("/Users/bshlegeris/Dropbox/repos/wireworld_madness/wireworlds/langton11x11.txt");
 //    cout << world.height << endl;
 //    world.printWorld();
-    world.run(20, false);
+    world.run(200, false);
     return 0;
 }
