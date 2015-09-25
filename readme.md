@@ -37,8 +37,16 @@ Active heads in the world: 53 Elapsed time: 27.057 sec  after 1000 transitions o
 
 Active heads in the world: 36 Elapsed time: 0.290 sec after 1000 transitions on 655 cells
 
+## Matt's Haskell
+
+
 
 ## trivial Python
 
 $ python3 python_cuda/wireworld.py
 time taken: more than a second per transition on Langton's Ant 11x11
+
+## good C++ implementation
+
+at a9d57e9b36aa37e7f49a409a1d1fd5de5c55355b: 0.00818s per transition on Lant11x11
+
