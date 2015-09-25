@@ -1,1 +1,0 @@
-ghc --make -O2 -W Sources/Wireworld.hs -iSources -odir "uname -m" -hidir "uname -m" -o Wireworld -XFlexibleInstances -XTypeSynonymInstances
