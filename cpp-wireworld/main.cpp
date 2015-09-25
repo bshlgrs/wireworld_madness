@@ -121,7 +121,7 @@ public:
 
     std::map<Position, CellType> cells;
     std::map<Position, int> adjacentHeads;
-    std::set<Position> headedCells;
+    std::set<Position> headAdjacentCells;
 
 
     CellType getCell(int x, int y) {
@@ -135,7 +135,7 @@ public:
 
     void countAdjacentHeads() {
         adjacentHeads.clear();
-        headedCells.clear();
+        headAdjacentCells.clear();
 
         for (auto iter : cells) {
             Position pos = iter.first;
@@ -149,15 +149,13 @@ public:
                     for (int dx : { -1, 0, 1}) {
                         for (int dy : { -1, 0, 1}) {
                             if (dx != 0 || dy != 0) {
-                                adjacentHeads[Position(x + dx, y + dy)] ++;
-                                headedCells.insert(Position(x + dx, y + dy));
+                                headAdjacentCells.insert(Position(x + dx, y + dy));
+                                adjacentHeads[Position(x + dx, y + dy)]++;
                             }
 //                                cout << x + dx << "," << y + dy << " " << adjacentHeads[thisThread][Position(x + dx, y + dy)] << endl;
                         }
                     }
-
                 }
-
                 default: break;
             };
         }
@@ -175,7 +173,7 @@ public:
 
             switch (cellType) {
                 case WIRE: {
-                    if (headedCells.count(pos)) {
+                    if (headAdjacentCells.count(pos)) {
                         int count = adjacentHeads[pos];
                         if (count == 1 || count == 2) {
                             cells[pos] = HEAD;
@@ -238,6 +236,6 @@ int main() {
     MapWorld world = loadFromFile("/Users/bshlegeris/Dropbox/repos/wireworld_madness/wireworlds/langton11x11.txt");
 //    cout << world.height << endl;
 //    world.printWorld();
-    world.run(200, false);
+    world.run(500, false);
     return 0;
 }
