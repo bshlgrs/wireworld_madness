@@ -5,6 +5,7 @@
 #include <time.h>
 #include <thread>
 #include <unordered_map>
+#include <set>
 
 
 using namespace std;
@@ -120,6 +121,8 @@ public:
 
     std::map<Position, CellType> cells;
     std::map<Position, int> adjacentHeads;
+    std::set<Position> headedCells;
+
 
     CellType getCell(int x, int y) {
         const Position pos = Position(x, y);
@@ -132,6 +135,7 @@ public:
 
     void countAdjacentHeads() {
         adjacentHeads.clear();
+        headedCells.clear();
 
         for (auto iter : cells) {
             Position pos = iter.first;
@@ -144,7 +148,10 @@ public:
 
                     for (int dx : { -1, 0, 1}) {
                         for (int dy : { -1, 0, 1}) {
-                            adjacentHeads[Position(x + dx, y + dy)] ++;
+                            if (dx != 0 || dy != 0) {
+                                adjacentHeads[Position(x + dx, y + dy)] ++;
+                                headedCells.insert(Position(x + dx, y + dy));
+                            }
 //                                cout << x + dx << "," << y + dy << " " << adjacentHeads[thisThread][Position(x + dx, y + dy)] << endl;
                         }
                     }
@@ -168,12 +175,13 @@ public:
 
             switch (cellType) {
                 case WIRE: {
-                    int count = adjacentHeads[pos];
-                    if (count == 1 || count == 2) {
-                        cells[pos] = HEAD;
-                        numberOfHeads++;
+                    if (headedCells.count(pos)) {
+                        int count = adjacentHeads[pos];
+                        if (count == 1 || count == 2) {
+                            cells[pos] = HEAD;
+                            numberOfHeads++;
+                        }
                     }
-
                     break;
                 }
                 case TAIL: cells[pos] = WIRE; break;
