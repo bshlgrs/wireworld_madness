@@ -92,14 +92,15 @@ public:
 
     int height = 0, width = 0, numberOfHeads = 0;
 
-    void run(int transitions, bool verbose) {
+    double run(int transitions, bool verbose, bool printTime, bool printNumbers) {
         clock_t t = clock();
 
         for (int x = 0; x < transitions; x++) {
             if (verbose)
                 printWorld();
 
-            cout << "number of heads: " << numberOfHeads << endl;
+            if (printNumbers)
+                cout << "number of heads: " << numberOfHeads << endl;
             transition();
         }
         if (verbose) {
@@ -108,7 +109,10 @@ public:
         }
 
         t = clock() - t;
-        cout << "that took " << ((float)t) / CLOCKS_PER_SEC / transitions << " seconds per transition." << endl;
+        if (printTime)
+            cout << "that took " << ((float)t) / CLOCKS_PER_SEC / transitions << " seconds per transition." << endl;
+
+        return ((float)t) / CLOCKS_PER_SEC / transitions;
     }
 };
 
@@ -233,9 +237,13 @@ MapWorld loadFromFile(string filepath) {
 };
 
 int main() {
-    MapWorld world = loadFromFile("/Users/bshlegeris/Dropbox/repos/wireworld_madness/wireworlds/langton11x11.txt");
-//    cout << world.height << endl;
-//    world.printWorld();
-    world.run(500, false);
+    MapWorld langton11x11 = loadFromFile("/Users/bshlegeris/Dropbox/repos/wireworld_madness/wireworlds/langton11x11.txt");
+    langton11x11.run(10, false, false, true);
+    cout << "running langton11x11" << endl;
+    langton11x11.run(1000, false, true, false);
+
+    MapWorld trollface = loadFromFile("/Users/bshlegeris/Dropbox/repos/wireworld_madness/wireworlds/trollface.txt");
+    cout << "running trollface" << endl;
+    trollface.run(500, false, true, false);
     return 0;
 }
